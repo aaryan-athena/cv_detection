@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# YOLO model weights (large binary files — downloaded automatically on first run)
+*.pt
+*.onnx
+*.engine
+
+# EasyOCR model cache
+.EasyOCR/
+
+# PyTorch / Ultralytics cache
+runs/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp / logs
+*.log
+tmp/
+temp/
+*.tmp
