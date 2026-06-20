@@ -13,12 +13,14 @@ def _get_recognizer():
     return _recognizer
 
 
-def listen_for_command(timeout: int = 7) -> str | None:
+def listen_for_command(timeout: int = 7, on_ready=None) -> str | None:
     r = _get_recognizer()
     try:
         with sr.Microphone() as source:
             print("[VOICE] Adjusting for ambient noise...")
             r.adjust_for_ambient_noise(source, duration=0.5)
+            if on_ready:
+                on_ready()
             print("[VOICE] Listening...")
             audio = r.listen(source, timeout=timeout, phrase_time_limit=5)
 

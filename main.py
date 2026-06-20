@@ -24,24 +24,28 @@ MODE_NAMES = {"1": "object detection", "2": "color detection", "3": "text extrac
 
 STATE_BAR_COLOR = {
     "idle":       (50,  50,  50),
+    "preparing":  (0,   80, 160),
     "listening":  (0,   0,  180),
     "processing": (0,  130, 220),
     "result":     (0,  130,   0),
 }
 STATE_LABEL = {
     "idle":       "Click MIC button (or press V) to activate voice assistant",
+    "preparing":  "Preparing microphone  —  please wait...",
     "listening":  "LISTENING  —  say: object detection / color detection / text extraction",
     "processing": "PROCESSING  —  please wait...",
     "result":     "Result shown above  —  click MIC or press V to go again",
 }
 BTN_COLOR = {
     "idle":       (90,  90,  90),
+    "preparing":  (0,   80, 160),
     "listening":  (0,   0,  200),
     "processing": (0,  140, 255),
     "result":     (0,  140,   0),
 }
 BTN_LABEL = {
     "idle":       "MIC",
+    "preparing":  "...",
     "listening":  " ON",
     "processing": " . .",
     "result":     "MIC",
@@ -83,18 +87,23 @@ def _draw_ui(frame: np.ndarray) -> np.ndarray:
 def _mouse_callback(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         h, w = display_dims
-        if app_state == "idle" and _in_button(x, y, w, h):
+        if app_state in ("idle", "result") and _in_button(x, y, w, h):
             threading.Thread(target=_voice_flow, daemon=True).start()
 
 
 def _voice_flow():
     global app_state, result_frame
 
-    app_state = "listening"
-    speak_sync("Listening. Say object detection, color detection, or text extraction.")
-    time.sleep(0.3)     # brief gap so mic doesn't catch TTS echo
+    app_state = "preparing"
+    speak_sync("Preparing microphone.")
+    time.sleep(0.1)
 
-    command_text = listen_for_command(timeout=7)
+    def _on_mic_ready():
+        global app_state
+        app_state = "listening"
+        print("[VOICE] Mic ready — now listening.")
+
+    command_text = listen_for_command(timeout=7, on_ready=_on_mic_ready)
 
     if not command_text:
         speak_sync("No command heard. Please try again.")
@@ -180,7 +189,7 @@ def run():
         key = cv2.waitKey(1) & 0xFF
         if key in (ord("q"), ord("Q"), 27):
             break
-        if key in (ord("v"), ord("V")) and app_state == "idle":
+        if key in (ord("v"), ord("V")) and app_state in ("idle", "result"):
             threading.Thread(target=_voice_flow, daemon=True).start()
 
     cap.release()
